@@ -202,7 +202,7 @@ REGISTRY: list[SpaceEntry] = [
         speed="slow",
         inputs="prompt, image",
         outputs="video_file",
-        notes="Good for short animations of still concept art.",
+        notes="PAUSED as of 2026-05. Flagged as abusive.",
     ),
     SpaceEntry(
         space_id="multimodalart/HunyuanVideo",
@@ -215,7 +215,20 @@ REGISTRY: list[SpaceEntry] = [
         speed="slow",
         inputs="prompt, image, num_frames",
         outputs="video_file",
-        notes="High quality but heavy. Often queued.",
+        notes="ERROR as of 2026-05. May have moved.",
+    ),
+    SpaceEntry(
+        space_id="Wan-AI/Wan2.1",
+        api_name="/generate",
+        category=Category.VIDEO,
+        task="Text/image-to-video (Wan2.1 14B, Apache 2.0)",
+        license=License.APACHE2,
+        commercial_ok=True,
+        compute=ComputeTier.CLOUD_PAID,
+        speed="slow",
+        inputs="prompt, image, num_frames",
+        outputs="video_file",
+        notes="Apache 2.0. Best open video model as of 2026-05. Official Space.",
     ),
 
     # ── Vision / VLM ──────────────────────────────────────────────────────────
@@ -383,10 +396,10 @@ def print_report(statuses: list[SpaceStatus], entries: list[SpaceEntry], as_json
                 "space": status.space_id,
                 "ok": status.ok,
                 "stage": status.stage,
-                "category": entry.category,
-                "license": entry.license,
+                "category": entry.category.value if hasattr(entry.category, 'value') else str(entry.category),
+                "license": entry.license.value if hasattr(entry.license, 'value') else str(entry.license),
                 "commercial_ok": entry.commercial_ok,
-                "compute": entry.compute,
+                "compute": entry.compute.value if hasattr(entry.compute, 'value') else str(entry.compute),
                 "error": status.error,
             })
         print(json.dumps(output, indent=2))
@@ -404,9 +417,19 @@ def print_report(statuses: list[SpaceStatus], entries: list[SpaceEntry], as_json
         icon = "✓" if status.ok else "✗"
         lic_icon = "🟢" if entry.commercial_ok else "🔴"
         print(f"  {icon} {status.space_id}")
-        print(f"    Stage: {status.stage}  |  Category: {entry.category}  |  License: {lic_icon} {entry.license}")
+        # Get string value for enum or string display
+        cat_val = entry.category.value if hasattr(entry.category, 'value') else entry.category
+        lic_val = entry.license.value if hasattr(entry.license, 'value') else entry.license
+        print(f"    Stage: {status.stage}  |  Category: {cat_val}  |  License: {lic_val}")
         if status.error:
             print(f"    Error: {status.error[:80]}")
+        if not status.ok:
+            alternatives = [
+                a.space_id for a in entries if a.category == entry.category
+                and a.space_id != entry.space_id and a.commercial_ok == entry.commercial_ok
+            ]
+            if alternatives:
+                print(f"    Try: {', '.join(alternatives[:2])}")
         print()
 
     print(f"{'─'*60}")

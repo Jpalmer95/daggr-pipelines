@@ -62,7 +62,6 @@ def search_spaces(category: str, limit: int = 10) -> list[dict]:
             spaces = api.list_spaces(
                 search=query,
                 sort="likes",
-                direction=-1,
                 limit=limit,
             )
             for space in spaces:
@@ -91,7 +90,6 @@ def get_trending(limit: int = 20) -> list[dict]:
     try:
         spaces = api.list_spaces(
             sort="likes",
-            direction=-1,
             limit=limit,
         )
         return [
